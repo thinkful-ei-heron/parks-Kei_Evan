@@ -10,18 +10,14 @@ function formatQueryParams(params) {
 function getSearchResults(stateSearch, maxResults=10) {
   const params = {
     api_key: apiKey,
-    fields: 'Addresses',
+    stateCode: stateSearch,
     limit: maxResults,
+    fields: 'Addresses',
   };
   let queryString = formatQueryParams(params);
-  for (let i = 0; i < stateSearch.length; i++){
-    queryString += `&stateCode=${stateSearch[i]}`;
-  }
-
   const url = baseURL + '?' + queryString;
 
   console.log(url);
-  console.log(maxResults);
 
   fetch(url)
     .then(response => {
@@ -36,14 +32,43 @@ function getSearchResults(stateSearch, maxResults=10) {
     });
 }
 
+
 function watchForm() {
   $('form').submit(event => {
     event.preventDefault();
+    $('#results').empty();
     const stateSearch = cleanStateSearch($('#js-state-search').val());
+    console.log(stateSearch);
     const maxResults = $('#js-max-results').val();
-    getSearchResults(stateSearch, maxResults);
+    for (let i = 0; i < stateSearch.length; i++){
+      getSearchResults(stateSearch[i], maxResults);
+    }
+    $('#results').removeClass('hidden');
   });
 }
+
+
+function displayResults(responseJson) {
+  // if there are previous results, remove them
+  console.log(responseJson);
+  //$('#results-list').empty();
+  // iterate through the items array
+  let htmlString = '';
+  for (let i = 0; i < responseJson.data.length; i++){
+    // for each video object in the items 
+    //array, add a list item to the results 
+    //list with the video title, description,
+    //and thumbnail
+    $('#results').append(`
+      <li><h3>${responseJson.data[i].fullName}</h3>
+      <p><b>URL:</b>${responseJson.data[i].url}</p>
+      <p><b>States:</b> ${responseJson.data[i].states}</p>
+      <p><b>Description:</b>${responseJson.data[i].description}</p>
+      </li>
+    `);
+  }
+}
+
 
 //functions to clean up the state searches
 function cleanStateSearch(stateSearch){
@@ -51,24 +76,5 @@ function cleanStateSearch(stateSearch){
   return stateArray;
 }
 
-function displayResults(responseJson) {
-  // if there are previous results, remove them
-  console.log(responseJson);
-  $('#results-list').empty();
-  // iterate through the items array
-  for (let i = 0; i < responseJson.data.length; i++){
-    // for each video object in the items 
-    //array, add a list item to the results 
-    //list with the video title, description,
-    //and thumbnail
-    $('#results-list').append(
-      `<li><h3>${responseJson.data[i].fullName}</h3>
-      <p><b>URL:</b>${responseJson.data[i].url}</p>
-      <p><b>States:</b> ${responseJson.data[i].states}</p>
-      <p><b>Description:</b>${responseJson.data[i].description}</p>
-      </li>`
-    );}
-  //display the results section  
-  $('#results').removeClass('hidden');
-}
+
 $(watchForm);
