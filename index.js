@@ -7,14 +7,17 @@ function formatQueryParams(params) {
   return queryItems.join('&');
 }
 
-function getSearchResults(query, maxResults=10) {
+function getSearchResults(stateSearch, maxResults=10) {
   const params = {
     api_key: apiKey,
-    stateCode: query,
-    //fields: ['fullName', 'url', 'description'm 'addresses'],
+    fields: 'Addresses',
     limit: maxResults,
   };
-  const queryString = formatQueryParams(params);
+  let queryString = formatQueryParams(params);
+  for (let i = 0; i < stateSearch.length; i++){
+    queryString += `&stateCode=${stateSearch[i]}`;
+  }
+
   const url = baseURL + '?' + queryString;
 
   console.log(url);
@@ -36,14 +39,17 @@ function getSearchResults(query, maxResults=10) {
 function watchForm() {
   $('form').submit(event => {
     event.preventDefault();
-    const stateSearch = $('#js-state-search').val();
-    //function to clean up state search 
+    const stateSearch = cleanStateSearch($('#js-state-search').val());
     const maxResults = $('#js-max-results').val();
     getSearchResults(stateSearch, maxResults);
   });
 }
 
 //functions to clean up the state searches
+function cleanStateSearch(stateSearch){
+  const stateArray = stateSearch.split(',');
+  return stateArray;
+}
 
 function displayResults(responseJson) {
   // if there are previous results, remove them
@@ -57,9 +63,9 @@ function displayResults(responseJson) {
     //and thumbnail
     $('#results-list').append(
       `<li><h3>${responseJson.data[i].fullName}</h3>
-      <p><b>URL:</b> ${responseJson.data[i].url}</p>
-      <p><b>Description:</b> ${responseJson.data[i].description}</p>
-      <p><b>Address:</b> ${responseJson.data[i].entranceFees}</p>
+      <p><b>URL:</b>${responseJson.data[i].url}</p>
+      <p><b>States:</b> ${responseJson.data[i].states}</p>
+      <p><b>Description:</b>${responseJson.data[i].description}</p>
       </li>`
     );}
   //display the results section  
